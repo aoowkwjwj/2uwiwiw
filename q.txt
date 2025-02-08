@@ -1,3 +1,51 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Maru Hub",
+    SubTitle = "  [ Blox Fruits ]",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(500, 350),
+    Acrylic = true,
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.End
+})
+
+-- Tab
+local Tabs = {
+    N = Window:AddTab({ Title = "Note", Icon = "" }),
+    M = Window:AddTab({ Title = "General", Icon = "home" }),
+    Stats = Window:AddTab({ Title = "Stats", Icon = "bar-chart" }),
+    I = Window:AddTab({ Title = "Item", Icon = "swords" }),
+    Mate = Window:AddTab({ Title = "Materials", Icon = "snowflake" }),
+    C = Window:AddTab({ Title = "Combat", Icon = "human" }),
+    L = Window:AddTab({ Title = "Location", Icon = "compass" }),
+    D = Window:AddTab({ Title = "Dungeon", Icon = "arrow-up" }),
+    Shop = Window:AddTab({ Title = "Shop", Icon = "shopping-cart" }),
+    Misc = Window:AddTab({ Title = "Miscellaneous", Icon = "box" }),
+    S = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+}
+
+local Info = Tabs.M:AddSection("Info / Setting")
+
+local Time = Tabs.M:AddParagraph({
+    Title = "Time since join server",
+    Content = ""
+})
+
+function UpdateTime()
+local GameTime = math.floor(workspace.DistributedGameTime+0.5)
+local Hour = math.floor(GameTime/(60^2))%24
+local Minute = math.floor(GameTime/(60^1))%60
+local Second = math.floor(GameTime/(60^0))%60
+Time:Set("[Sever Time]: Hours: "..Hour.." Min: "..Minute.." Sec: "..Second)
+end
+
+spawn(function()
+while task.wait() do
+pcall(function()
+UpdateTime()
+end)
+end
+end)
