@@ -3054,13 +3054,54 @@ end)
 
 local Valen = M:AddSection("Valentine Event")
 
+function teleportToWorld(world)
+    if world == "World1" then
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
+            -674.569275, 7.34288216, 1608.14282, 
+            -0.685977519, 0.0484336838, -0.726008952, 
+            0.00361764152, 0.997996807, 0.063160412, 
+            0.727613628, 0.0407001786, -0.684778571
+        )
+    elseif world == "World2" then
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
+            -298.429657, 72.484169, 305.248169, 
+            -0.732647359, -0.0201832335, 0.680309415, 
+            -0.00219219364, 0.999624968, 0.0272957552, 
+            -0.680605173, 0.0185067952, -0.732416928
+        )
+    elseif world == "World3" then
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
+            -5100.71973, 314.014252, -2955.23999, 
+            0.958449841, 0.015007345, -0.284866244, 
+            -0.00301109999, 0.999091744, 0.0425032154, 
+            0.285245359, -0.0398794338, 0.957624555
+        )
+    else
+        return
+    end
+
+    task.wait(1)
+
+    for i = 1, 5 do
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672), game.Workspace.CurrentCamera.CFrame)
+        task.wait(0.2)
+    end
+end
+
 local TPHeart = Valen:AddButton({
-	["Title"] = "Teleport To Valentine Shop",
-	["Content"] = "Dịch Chuyển Tới Cửa Hàng Valentine",
-	["Icon"] = "rbxassetid://16932740082",
-	["Callback"] = function()
-		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-5100.71973, 314.014252, -2955.23999, 0.958449841, 0.015007345, -0.284866244, -0.00301109999, 0.999091744, 0.0425032154, 0.285245359, -0.0398794338, 0.957624555)
-	end
+    ["Title"] = "Teleport To Valentine Shop",
+    ["Content"] = "Dịch Chuyển Tới Cửa Hàng Valentine",
+    ["Icon"] = "rbxassetid://16932740082",
+    ["Callback"] = function()
+        if World1 then
+            teleportToWorld("World1")
+        elseif World2 then
+            teleportToWorld("World2")
+        elseif World3 then
+            teleportToWorld("World3")
+        end
+    end
 })
 
 local FarmValen = Valen:AddToggle({
