@@ -2655,70 +2655,111 @@ local FAttack = S:AddToggle({
 	end
 })
 
-local player = game.Players.LocalPlayer
+if _G.FastAttack then
+    local _ENV = (getgenv or getrenv or getfenv)()
 
-function FindEnemiesInRange(targets, enemies)
-    local playerPos = (player.Character or player.CharacterAdded:Wait()):GetPivot().Position
-    local primaryTarget = nil
+    local function SafeWaitForChild(parent, childName)
+        local success, result = pcall(function()
+            return parent:WaitForChild(childName)
+        end)
+        return success and result or nil
+    end
 
-    for _, enemy in ipairs(enemies) do
-        if not enemy:GetAttribute("IsBoat") and enemy:FindFirstChildOfClass("Humanoid") and enemy.Humanoid.Health > 0 then
-            local head = enemy:FindFirstChild("Head")
-            if head and (playerPos - head.Position).Magnitude <= 60 then
-                if enemy ~= player.Character then
-                    table.insert(targets, { enemy, head })
-                    primaryTarget = head
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    local Player = Players.LocalPlayer
+
+    if not Player then return end
+
+    local Remotes = SafeWaitForChild(ReplicatedStorage, "Remotes")
+    if not Remotes then return end
+
+    local Net = SafeWaitForChild(SafeWaitForChild(ReplicatedStorage, "Modules"), "Net")
+    local Enemies = SafeWaitForChild(workspace, "Enemies")
+    local Characters = SafeWaitForChild(workspace, "Characters")
+
+    local RegisterAttack = SafeWaitForChild(Net, "RE/RegisterAttack")
+    local RegisterHit = SafeWaitForChild(Net, "RE/RegisterHit")
+
+    local Settings = { AutoClick = true, ClickDelay = 0 }
+    local FastAttack = { Distance = 100 }
+
+    local function IsAlive(character)
+        return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
+    end
+
+    local function ProcessEnemies(OthersEnemies, Folder)
+        local BasePart = nil
+        for _, Enemy in Folder:GetChildren() do
+            local Head = Enemy:FindFirstChild("Head")
+            if Head and IsAlive(Enemy) and Player:DistanceFromCharacter(Head.Position) < FastAttack.Distance then
+                if Enemy ~= Player.Character then
+                    table.insert(OthersEnemies, { Enemy, Head })
+                    BasePart = Head
                 end
             end
         end
+        return BasePart
     end
 
-    return primaryTarget
-end
+    function FastAttack:Attack(BasePart, OthersEnemies)
+        if not BasePart or #OthersEnemies == 0 then return end
+        RegisterAttack:FireServer(Settings.ClickDelay or 0)
+        RegisterHit:FireServer(BasePart, OthersEnemies)
+    end
 
-function GetEquippedTool()
-    local character = player.Character
-    if not character then return nil end
-    for _, item in ipairs(character:GetChildren()) do
-        if item:IsA("Tool") then
-            return item
+    function FastAttack:AttackNearest()
+        local OthersEnemies = {}
+        local Part1 = ProcessEnemies(OthersEnemies, Enemies)
+        local Part2 = ProcessEnemies(OthersEnemies, Characters)
+        if #OthersEnemies > 0 then
+            self:Attack(Part1 or Part2, OthersEnemies)
+        else
+            task.wait(0)
         end
     end
-    return nil
-end
 
-function AttackNoCoolDown()
-    local targets = {}
-    local enemies = game:GetService("Workspace").Enemies:GetChildren()
-    local primaryPart = FindEnemiesInRange(targets, enemies)
+    local function GetWeapon()
+        local Backpack = Player.Backpack
+        local Character = Player.Character
 
-    if not primaryPart then return end
+        if _G.SelectWeapon and _G.SelectWeapon ~= "" then
+            if Backpack:FindFirstChild(_G.SelectWeapon) then
+                return Backpack[_G.SelectWeapon]
+            elseif Character and Character:FindFirstChild(_G.SelectWeapon) then
+                return Character[_G.SelectWeapon]
+            end
+        end
 
-    local tool = GetEquippedTool()
-    if not tool then return end
+        for _, tool in pairs(Backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool.ToolTip == _G.SelectWeapon then
+                return tool
+            end
+        end
+        return nil
+    end
 
-    pcall(function()
-        local storage = game:GetService("ReplicatedStorage")
-        local attackEvent = storage:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack")
-        local hitEvent = storage:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterHit")
-
-        if #targets > 0 then
-            attackEvent:FireServer(0.000000001)
-            hitEvent:FireServer(primaryPart, targets)
+    function FastAttack:BladeHits()
+        local Weapon = GetWeapon()
+        if Weapon then
+            Player.Character.Humanoid:EquipTool(Weapon)
+            self:AttackNearest()
         else
-            task.wait(0.000000001)
+            task.wait(0)
+        end
+    end
+
+    task.spawn(function()
+        while task.wait(Settings.ClickDelay) do
+            if Settings.AutoClick then
+                FastAttack:BladeHits()
+            end
         end
     end)
-end
 
-spawn(function()
-    if _G.FastAttack then
-        repeat
-            task.wait()
-            AttackNoCoolDown()
-        until not _G.FastAttack
-    end
-end)
+    _ENV.rz_FastAttack = FastAttack
+end
 
 local Bring = S:AddToggle({
 	["Title"]= "Bring Mob",
