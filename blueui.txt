@@ -1,0 +1,464 @@
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Blue X",
+    SubTitle = "2025",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(500, 360),
+    Acrylic = true,
+    Theme = "Aqua",
+    MinimizeKey = Enum.KeyCode.End
+})
+
+_G.Settings = {
+    Weapon = "Melee";
+    FastAttack = true;
+    BringMob = true;
+    BypassTP = false;
+    AutoHaki = true;
+}
+
+local foldername = "ltooo"
+local filename = "BloxFruit "..game.Players.LocalPlayer.Name.." Config.json"
+ 
+function SaveSettings()
+    local HttpService = game:GetService("HttpService")
+    local json = HttpService:JSONEncode(_G.Settings)
+    if (writefile) then
+        if isfolder(foldername) then
+            if isfile(foldername.."\\"..filename) then
+                writefile(foldername.."\\"..filename, json)
+            else
+                writefile(foldername.."\\"..filename, json)
+            end
+        else
+            makefolder(foldername)
+            writefile(foldername.."\\"..filename, json)
+        end
+    end
+end
+
+function loadSettings()
+    local HttpService = game:GetService("HttpService")
+    if isfile(foldername.."\\"..filename) then
+        _G.Settings = HttpService:JSONDecode(readfile(foldername.."\\"..filename))
+    end
+end
+ 
+loadSettings()
+
+local Tabs = {
+    L = Window:AddTab({ Title = "Local Player", Icon = "" }),
+    S = Window:AddTab({ Title = "Setting Farm", Icon = "" }),
+    M = Window:AddTab({ Title = "Main Farm", Icon = "" }),
+    Stack = Window:AddTab({ Title = "Stack Farm", Icon = "" }),
+    O = Window:AddTab({ Title = "Farm Other", Icon = "" }),
+    I = Window:AddTab({ Title = "Item", Icon = "" }),
+    D = Window:AddTab({ Title = "Dragon Dojo", Icon = "" }),
+    Sea = Window:AddTab({ Title = "Sea", Icon = "" }),
+    U = Window:AddTab({ Title = "Upgrade Race", Icon = "" }),
+    F = Window:AddTab({ Title = "Fruits", Icon = "" }),
+    P = Window:AddTab({ Title = "PVP", Icon = "" }),
+    Support = Window:AddTab({ Title = "Support Map", Icon = "" }),
+}
+
+local Options = Fluent.Options
+local ScreenGui = Instance.new("ScreenGui")
+local ImageButton = Instance.new("ImageButton")
+local UICorner = Instance.new("UICorner")
+
+local isOpen = false
+
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+ImageButton.Parent = ScreenGui
+ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ImageButton.BorderSizePixel = 0
+ImageButton.Position = UDim2.new(0.100833337, 0, 0.0952890813, 0)
+ImageButton.Size = UDim2.new(0, 50, 0, 50)
+ImageButton.Draggable = true
+
+ImageButton.Image = "http://www.roblox.com/asset/?id=your_closed_image_id_here"
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = ImageButton
+
+ImageButton.MouseButton1Down:Connect(function()
+    isOpen = not isOpen
+
+    if isOpen then
+        ImageButton.Image = "http://www.roblox.com/asset/?id=111751700463789"
+    else
+        ImageButton.Image = "http://www.roblox.com/asset/?id=137924388649619"
+    end
+
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game)
+end)
+
+local SL = Tabs.L:AddSection("Teleport Special Island")
+
+local ToggleHis = Tabs.L:AddToggle("ToggleHis", {
+    Title = "Teleport To Prehistoric Island",
+    Description = "Bay Tới Đảo Núi Lửa", 
+    Default = false
+})
+ToggleHis:OnChanged(function(Value)
+    _G.TpPrehistoric = Value
+    StopTween(_G.TpPrehistoric)
+end)
+
+spawn(function()
+    local island
+    while not island do
+        island = game:GetService("Workspace").Map:FindFirstChild("PrehistoricIsland")
+        wait()
+    end
+    while wait() do
+        if _G.TpPrehistoric then
+            local prehistoricIslandCore = game:GetService("Workspace").Map:FindFirstChild("PrehistoricIsland")
+            if prehistoricIslandCore then
+                local relic = prehistoricIslandCore:FindFirstChild("Core") and prehistoricIslandCore.Core:FindFirstChild("PrehistoricRelic")
+                local skull = relic and relic:FindFirstChild("Skull")
+                if skull then
+                    topos(CFrame.new(skull.Position))
+                    _G.TpPrehistoric = false
+                end
+            end
+        end
+    end
+end)
+
+local S = Tabs.S:AddSection("Setting Farm")
+
+local WeaponList = {"Melee","Sword","Fruit","Gun"}
+_G.SelectWeapon = "Melee"
+local DropdownSelectWeapon = Tabs.S:AddDropdown("DropdownSelectWeapon", {
+        Title = "Select Weapon",
+        Description = "Chọn Vũ Khí",
+        Values = WeaponList,
+        Multi = false,
+        Default = _G.Settings.Weapon,
+    })
+    DropdownSelectWeapon:SetValue('_G.Settings.Weapon')
+    DropdownSelectWeapon:OnChanged(function(Value)
+        _G.SelectWeapon = Value
+        _G.Settings.Weapon = Value
+        SaveSettings()
+    end)
+    task.spawn(function()
+    while wait() do
+        pcall(function()
+            if _G.SelectWeapon == "Melee" then
+                for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if v.ToolTip == "Melee" then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
+                            _G.SelectWeapon = v.Name
+                        end
+                    end
+                end
+            elseif _G.SelectWeapon == "Sword" then
+                for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if v.ToolTip == "Sword" then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
+                            _G.SelectWeapon = v.Name
+                        end
+                    end
+                end
+            elseif _G.SelectWeapon == "Gun" then
+                for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if v.ToolTip == "Gun" then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
+                            _G.SelectWeapon = v.Name
+                        end
+                    end
+                end
+            elseif _G.SelectWeapon == "Fruit" then
+                for i, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if v.ToolTip == "Blox Fruit" then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
+                            _G.SelectWeapon = v.Name
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+local ToggleFast = Tabs.S:AddToggle("ToggleFast", {Title = "Fast Attack",Description = "Đánh Nhanh", Default = _G.Settings.FastAttack })
+ToggleFast:OnChanged(function(Value)
+    _G.FastAttack = Value
+    _G.Settings.FastAttack = Value
+    SaveSettings()
+end)
+Options.ToggleFast:SetValue(_G.Settings.FastAttack)
+
+local player = game.Players.LocalPlayer
+
+function FindEnemiesInRange(targets, enemies)
+    local playerPos = (player.Character or player.CharacterAdded:Wait()):GetPivot().Position
+    local primaryTarget = nil
+
+    for _, enemy in ipairs(enemies) do
+        if not enemy:GetAttribute("IsBoat") and enemy:FindFirstChildOfClass("Humanoid") and enemy.Humanoid.Health > 0 then
+            local head = enemy:FindFirstChild("Head")
+            if head and (playerPos - head.Position).Magnitude <= 60 then
+                if enemy ~= player.Character then
+                    table.insert(targets, { enemy, head })
+                    primaryTarget = head
+                end
+            end
+        end
+    end
+
+    return primaryTarget
+end
+
+function GetEquippedTool()
+    local character = player.Character
+    if not character then return nil end
+    for _, item in ipairs(character:GetChildren()) do
+        if item:IsA("Tool") then
+            return item
+        end
+    end
+    return nil
+end
+
+function AttackNoCoolDown()
+    local targets = {}
+    local enemies = game:GetService("Workspace").Enemies:GetChildren()
+    local primaryPart = FindEnemiesInRange(targets, enemies)
+
+    if not primaryPart then return end
+
+    local tool = GetEquippedTool()
+    if not tool then return end
+
+    pcall(function()
+        local storage = game:GetService("ReplicatedStorage")
+        local attackEvent = storage:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack")
+        local hitEvent = storage:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterHit")
+
+        if #targets > 0 then
+            attackEvent:FireServer(0.000000001)
+            hitEvent:FireServer(primaryPart, targets)
+        else
+            task.wait(0.000000001)
+        end
+    end)
+end
+
+spawn(function()
+    if _G.FastAttack then
+        repeat
+            task.wait()
+            AttackNoCoolDown()
+        until not _G.FastAttack
+    end
+end)
+
+local ToggleBringMob = Tabs.S:AddToggle("ToggleBringMob", {Title = "Bring Mob",Description = "Gom Quái", Default = _G.Settings.BringMonster })
+    ToggleBringMob:OnChanged(function(Value)
+        _G.BringMonster = Value
+        _G.Settings.BringMonster = Value
+        SaveSettings()
+    end)
+    Options.ToggleBringMob:SetValue(_G.Settings.BringMonster) 
+    local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            CheckQuest()
+            local enemies = Workspace.Enemies:GetChildren()
+            local MonsterCount = 0
+            for _, enemy in ipairs(enemies) do
+                if MonsterCount >= 2 then
+                    break
+                end                
+                if _G.BringMonster and enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
+                    local humanoid = enemy:FindFirstChild("Humanoid")
+                    local rootPart = enemy:FindFirstChild("HumanoidRootPart")
+                    if humanoid and rootPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local distance = (rootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                        if StartMagnet and (enemy.Name == MonFarm or enemy.Name == Mon) and humanoid.Health > 0 and distance <= 350 then
+                            if enemy.Name == "Factory Staff" and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 5000 then
+                                if rootPart.Parent then
+                                    rootPart.CanCollide = false
+                                    rootPart.Size = Vector3.new(60, 60, 60)
+                                    rootPart.CFrame = PosMon
+                                    enemy.Head.CanCollide = false
+                                    local animator = humanoid:FindFirstChild("Animator")
+                                    if animator then
+                                        pcall(function()
+                                            animator:Destroy()
+                                        end)
+                                    end
+                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+                                    MonsterCount = MonsterCount + 1
+                                end
+                            elseif (enemy.Name == MonFarm or enemy.Name == Mon) and PosMon and (rootPart.Position - PosMon.Position).Magnitude <= 4500 then
+                                if rootPart.Parent then
+                                    rootPart.CanCollide = false
+                                    rootPart.Size = Vector3.new(60, 60, 60)
+                                    rootPart.CFrame = PosMon
+                                    enemy.Head.CanCollide = false
+                                    local animator = humanoid:FindFirstChild("Animator")
+                                    if animator then
+                                        pcall(function()
+                                            animator:Destroy()
+                                        end)
+                                    end
+                                    sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+                                    MonsterCount = MonsterCount + 1
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+    
+local ToggleBypassTP = Tabs.S:AddToggle("ToggleBypassTP", {Title = "Bypass TP",Description = "Di Chuyển Dạng Reset", Default = _G.Settings.BypassTP })
+    ToggleBypassTP:OnChanged(function(Value)
+        BypassTP = Value
+        _G.Settings.BypassTP = Value
+        SaveSettings()
+    end)
+    Options.ToggleBypassTP:SetValue(_G.Settings.BypassTP)
+    
+local ToggleHaki = Tabs.S:AddToggle("ToggleHaki", {Title = "Auto Haki Buso",Description = "Haki", Default = _G.Settings.AutoHaki })
+    ToggleHaki:OnChanged(function(value)
+        _G.AUTOHAKI = value
+        _G.Settings.AutoHaki = value
+        SaveSettings()
+    end)
+    Options.ToggleHaki:SetValue(_G.Settings.AutoHaki)
+    spawn(function()
+    while wait(.1) do
+        if _G.AUTOHAKI then 
+            if not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") then
+                local args = {
+                    [1] = "Buso"
+                }
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            end
+        end
+    end
+end)
+    
+local ToggleLevel = Tabs.M:AddToggle("ToggleLevel", {
+        Title = "Auto Farm Level",
+        Description = "Cày Cấp",
+        Default = false })
+    ToggleLevel:OnChanged(function(Value)
+        _G.AutoFarm = Value
+        StopTween(_G.AutoFarm)
+        if Value == false then
+            wait()
+        end
+    end)
+    Options.ToggleLevel:SetValue(false)
+    spawn(function()
+        while wait() do
+            if _G.AutoFarm then
+                pcall(function()
+                    local QuestTitle = game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+                    if not string.find(QuestTitle, NameMon) then
+                        StartMagnet = false
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                    end
+                    if game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false then
+                        StartMagnet = false
+                        CheckQuest()
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest",NameQuest,LevelQuest)
+                        if BypassTP then
+                        if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameMon.Position).Magnitude > 1500 then
+						BTP(CFrameMon)
+						elseif (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameMon.Position).Magnitude < 1500 then
+						TP1(CFrameMon)
+						end
+					else
+						TP1(CFrameMon)
+					end
+                    elseif game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == true then
+                        CheckQuest()
+                        if game:GetService("Workspace").Enemies:FindFirstChild(Mon) then
+                            for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                                    if v.Name == Mon then
+                                        if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
+                                            repeat task.wait()
+                                                EquipWeapon(_G.SelectWeapon)
+                                                AutoHaki()                                            
+                                                PosMon = v.HumanoidRootPart.CFrame
+                                                TP1(v.HumanoidRootPart.CFrame * Pos)
+                                                v.HumanoidRootPart.CanCollide = false
+                                                v.Humanoid.WalkSpeed = 0
+                                                v.Head.CanCollide = false
+                                                v.HumanoidRootPart.Size = Vector3.new(70,70,70)
+                                                StartMagnet = true
+                                                game:GetService'VirtualUser':CaptureController()
+                                                game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
+                                            until not _G.AutoFarm or v.Humanoid.Health <= 0 or not v.Parent or game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible == false
+                                        else
+                                            StartMagnet = false
+                                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
+                                        end
+                                    end
+                                end
+                            end
+                        else
+                            TP1(CFrameMon)
+                            UnEquipWeapon(_G.SelectWeapon)
+                            StartMagnet = false
+                            if game:GetService("ReplicatedStorage"):FindFirstChild(Mon) then
+                             TP1(game:GetService("ReplicatedStorage"):FindFirstChild(Mon).HumanoidRootPart.CFrame * CFrame.new(15,10,2))
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+    
+local ToggleBone = Tabs.M:AddToggle("ToggleBone", {
+        Title = "Auto Farm Bone",
+        Description = "Cày Xương",
+        Default = false })
+    ToggleBone:OnChanged(function(Value)
+        _G.AutoBonee = Value
+        StopTween(_G.AutoBonee)
+        if Value == false then
+            wait()
+        end
+    end)
+    Options.ToggleBone:SetValue(false)
+
+local ToggleCake = Tabs.M:AddToggle("ToggleCake", {
+        Title = "Auto Farm Cake Prince",
+        Description = "Cày Đảo Bánh",
+        Default = false })
+    ToggleCake:OnChanged(function(Value)
+        _G.AutoCake = Value
+        StopTween(_G.AutoCake)
+        if Value == false then
+            wait()
+        end
+    end)
+    Options.ToggleCake:SetValue(false)
+            
+Fluent:Notify({
+    Title = "Blue X Hub V2",
+    Content = "2025",
+    Duration = 10
+})
