@@ -2155,6 +2155,8 @@ function Alc:NewWindow(WindowName:string,WindowDescription:string,WindowLogo:str
 		end
 	end)
 
+	local Window = Alc:NewWindow('Blue X Hub','Grow a Garden V1.0.0 [Remake]','rbxassetid://78936816738382')
+
 	UserInputService.InputBegan:Connect(function(input,ty)
 		if ty then
 			return
